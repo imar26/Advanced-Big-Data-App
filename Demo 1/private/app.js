@@ -1,4 +1,4 @@
-module.exports = function (app) {
+module.exports = function (app, client) {
 
     // Data Validation
     var Validator = require('jsonschema').Validator;
@@ -167,16 +167,33 @@ module.exports = function (app) {
         let _id = uuidv1();
 
         let addPlan = req.body;
+        console.log(addPlan);
         
 
         let errors = v.validate(addPlan, schema).errors;
         if(errors.length < 1) {
-            console.log(addPlan);
+            client.set("plan_"+_id, JSON.stringify(addPlan), function(err, result) {
+                if(err) {
+                    console.log(err);
+                }
+                console.log(result);
+            });
         } else {
             for(let i=0; i<errors.length; i++) {
                 console.log(errors[i].stack);
             }
         }
+    });
+
+    app.get('/getPlan/:planId', function(req, res, next) {
+        let planId = req.params.planId;
+
+        client.get(planId, function(err, result) {
+            if(err) {
+                console.log(err);
+            }
+            console.log(JSON.parse(result));
+        });
     });
 
     // var validate = require('jsonschema').validate;
