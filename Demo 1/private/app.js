@@ -99,7 +99,8 @@ module.exports = function (app, client) {
             "creationDate": {
                 "type": "string"
             }
-        }        
+        },
+        "additionalProperties": false        
     };
 
     // var data = {
@@ -168,7 +169,6 @@ module.exports = function (app, client) {
 
         let addPlan = req.body;
         // console.log(addPlan);
-        
 
         let errors = v.validate(addPlan, schema).errors;
         if(errors.length < 1) {
