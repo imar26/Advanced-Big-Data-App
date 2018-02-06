@@ -177,7 +177,7 @@ module.exports = function (app, client) {
                     console.log(err);
                 }
                 // console.log(result);
-                res.sendStatus(200);
+                res.sendStatus(201);
             });
         } else {
             var errorArray = [];
@@ -199,6 +199,12 @@ module.exports = function (app, client) {
             // console.log(JSON.parse(result));
             res.json(JSON.parse(result));
         });
+    });
+
+    app.delete('/plan/:planId', function(req, res, next) {
+        let planId = req.params.planId;
+        client.del(planId);
+        res.sendStatus(200);
     });
 
     // var validate = require('jsonschema').validate;
