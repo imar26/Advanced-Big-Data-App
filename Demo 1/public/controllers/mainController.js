@@ -3,10 +3,13 @@
         .module('MyApp')
         .controller('MainController', MainController);
 
-    function MainController($http, $scope) {
-        $http.get('/')
-            .then(function() {
-                $scope.myName = "Aadesh";
+    function MainController($http, $scope, MainService) {
+        MainService
+            .getCall()
+            .then(function(response) {
+                console.log(response);
+            }, function(error) {
+                console.log(error);
             });
     }
 })();
