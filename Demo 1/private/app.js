@@ -167,21 +167,25 @@ module.exports = function (app, client) {
         let _id = uuidv1();
 
         let addPlan = req.body;
-        console.log(addPlan);
+        // console.log(addPlan);
         
 
         let errors = v.validate(addPlan, schema).errors;
         if(errors.length < 1) {
-            client.set("plan_"+_id, JSON.stringify(addPlan), function(err, result) {
+            client.set("plan-"+_id, JSON.stringify(addPlan), function(err, result) {
                 if(err) {
                     console.log(err);
                 }
-                console.log(result);
+                // console.log(result);
+                res.sendStatus(200);
             });
         } else {
+            var errorArray = [];
             for(let i=0; i<errors.length; i++) {
                 console.log(errors[i].stack);
+                errorArray.push(errors[i].stack);
             }
+            res.send(errorArray);
         }
     });
 
@@ -192,7 +196,8 @@ module.exports = function (app, client) {
             if(err) {
                 console.log(err);
             }
-            console.log(JSON.parse(result));
+            // console.log(JSON.parse(result));
+            res.json(JSON.parse(result));
         });
     });
 
