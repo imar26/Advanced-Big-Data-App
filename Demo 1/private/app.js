@@ -163,7 +163,7 @@ module.exports = function (app, client) {
         res.json(data);
     });
 
-    app.post('/plan/add', function(req, res, next) {
+    app.post('/addPlan', function(req, res, next) {
         const uuidv1 = require('uuid/v1');
         let _id = uuidv1();
 
@@ -189,6 +189,16 @@ module.exports = function (app, client) {
         }
     });
 
+    // app.get('/getAllPlans', function(req, res, next) {
+    //     client.get('', function(err, result) {
+    //         if(err) {
+    //             console.log(err);
+    //         }
+    //         // console.log(JSON.parse(result));
+    //         res.json(JSON.parse(result));
+    //     });
+    // });
+
     app.get('/getPlan/:planId', function(req, res, next) {
         let planId = req.params.planId;
 
@@ -201,7 +211,7 @@ module.exports = function (app, client) {
         });
     });
 
-    app.delete('/plan/:planId', function(req, res, next) {
+    app.delete('/deletePlan/:planId', function(req, res, next) {
         let planId = req.params.planId;
         client.del(planId);
         res.sendStatus(200);
