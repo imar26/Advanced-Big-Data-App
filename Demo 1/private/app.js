@@ -177,7 +177,7 @@ module.exports = function (app, client) {
                     console.log(err);
                 }
                 // console.log(result);
-                res.sendStatus(201);
+                res.send("The key of the newly created plan is: " + "plan-"+_id);
             });
         } else {
             var errorArray = [];
