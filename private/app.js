@@ -168,7 +168,6 @@ module.exports = function (app, client) {
         let _id = uuidv1();
 
         let addPlan = req.body;
-        // console.log(addPlan);
 
         let errors = v.validate(addPlan, schema).errors;
         if(errors.length < 1) {
@@ -176,16 +175,14 @@ module.exports = function (app, client) {
                 if(err) {
                     console.log(err);
                 }
-                // console.log(result);
                 res.send("The key of the newly created plan is: " + "plan-"+_id);
             });
         } else {
             var errorArray = [];
             for(let i=0; i<errors.length; i++) {
-                // console.log(errors[i].stack);
                 errorArray.push(errors[i].stack);
             }
-            res.send(errorArray);
+            res.status(400).send(errorArray);
         }
     });
 
@@ -196,15 +193,26 @@ module.exports = function (app, client) {
             if(err) {
                 console.log(err);
             }
-            // console.log(JSON.parse(result));
-            res.json(JSON.parse(result));
+            if(result) {
+                res.json(JSON.parse(result));
+            } else {
+                res.sendStatus(404);
+            }
         });
     });
 
     app.delete('/deletePlan/:planId', function(req, res, next) {
         let planId = req.params.planId;
-        client.del(planId);
-        res.sendStatus(200);
+        client.del(planId, function(err, result) {
+            if(err) {
+                console.log(err);
+            }
+            if(result) {
+                res.sendStatus(200);
+            } else {
+                res.sendStatus(404);
+            }
+        });
     });
 
     // Another way to validate Data with JSON Schema
