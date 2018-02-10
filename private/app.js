@@ -170,20 +170,68 @@ module.exports = function (app, client) {
         let addPlan = req.body;
 
         let errors = v.validate(addPlan, schema).errors;
-        if(errors.length < 1) {
-            client.set("plan-"+_id, JSON.stringify(addPlan), function(err, result) {
-                if(err) {
-                    console.log(err);
+        if (errors.length < 1) {
+
+            for (let key in addPlan) {
+                // check also if property is not inherited from prototype
+                if (addPlan.hasOwnProperty(key)) {
+                    let value = addPlan[key];
+                    if(typeof(value) == 'object') {
+                        if(value instanceof Array) {
+                            for(let i=0; i<value.length; i++) {
+                                let eachValue = value[i];
+                                for (let innerkey in eachValue) {
+                                    if (eachValue.hasOwnProperty(innerkey)) {
+                                        let innerValue = eachValue[innerkey];
+                                        if(typeof(innerValue) == 'object') {
+                                            client.hmset("plan-----"+_id+"-----"+key+'------'+innerkey+'-----'+i, innerValue, function(err, result) {
+                                                if(err) {
+                                                    console.log(err);
+                                                }
+                                            });
+                                            client.sadd("set-----"+_id, "plan-----"+_id+"-----"+key+'------'+innerkey+'-----'+i);
+                                        } else if(typeof(innerValue) == 'string') {
+                                            client.hset("plan-----"+_id+"-----"+key+'------'+innerkey+'-----'+i, innerkey, innerValue, function(err, result) {
+                                                if(err) {
+                                                    console.log(err);
+                                                }
+                                            });
+                                            client.sadd("set-----"+_id, "plan-----"+_id+"-----"+key+'------'+innerkey+'-----'+i);
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            client.hmset("plan-----"+_id+"-----"+key, value, function(err, result) {
+                                if(err) {
+                                    console.log(err);
+                                }
+                            });
+
+                            client.sadd("set-----"+_id, "plan-----"+_id+"-----"+key);
+                        }
+                    } else if(typeof(value) == 'string') {
+                        client.hset("plan-----"+_id+"-----"+key, key, value, function(err, result) {
+                            if(err) {
+                                console.log(err);
+                            }
+                        });
+                        client.sadd("set-----"+_id, "plan-----"+_id+"-----"+key);
+                    }
                 }
-                res.send("The key of the newly created plan is: " + "plan-"+_id);
-            });
+            }
+            res.status(201).send("The key of the newly created plan is: " + "plan-"+_id);
         } else {
             var errorArray = [];
-            for(let i=0; i<errors.length; i++) {
+            for (let i = 0; i < errors.length; i++) {
                 errorArray.push(errors[i].stack);
             }
             res.status(400).send(errorArray);
         }
+    });
+
+    app.get('/getAllPlans', function (req, res, next) {
+        res.send('Displays all the plans.');
     });
 
     app.get('/getPlan/:planId', function(req, res, next) {
