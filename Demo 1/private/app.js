@@ -4,6 +4,8 @@ module.exports = function (app, client) {
     var Validator = require('jsonschema').Validator;
     var v = new Validator();
 
+
+    // JSON Schema
     var schema = {
         "$schema": "http://json-schema.org/draft-04/schema#",
         "title": "JSON Schema",
@@ -103,6 +105,7 @@ module.exports = function (app, client) {
         "additionalProperties": false        
     };
 
+    // Test data used initially for testing
     // var data = {
     //     "planCostShares": {
     //         "deductible": 20,
@@ -182,22 +185,12 @@ module.exports = function (app, client) {
         } else {
             var errorArray = [];
             for(let i=0; i<errors.length; i++) {
-                console.log(errors[i].stack);
+                // console.log(errors[i].stack);
                 errorArray.push(errors[i].stack);
             }
             res.send(errorArray);
         }
     });
-
-    // app.get('/getAllPlans', function(req, res, next) {
-    //     client.get('', function(err, result) {
-    //         if(err) {
-    //             console.log(err);
-    //         }
-    //         // console.log(JSON.parse(result));
-    //         res.json(JSON.parse(result));
-    //     });
-    // });
 
     app.get('/getPlan/:planId', function(req, res, next) {
         let planId = req.params.planId;
@@ -217,10 +210,11 @@ module.exports = function (app, client) {
         res.sendStatus(200);
     });
 
+    // Another way to validate Data with JSON Schema
     // var validate = require('jsonschema').validate;
+    // console.log(validate(p, schema));
 
-    // Temporarily commented out
+    // Temporarily commented out (Validating with hardcoded data)
     // console.log(v.validate(data, schema));
 
-    // console.log(validate(p, schema));
 };
