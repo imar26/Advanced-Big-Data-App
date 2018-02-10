@@ -160,10 +160,7 @@ module.exports = function (app, client) {
 
     // Rest API's
     app.get('/', function(req, res, next) {
-        var data = {
-            text: 'Hello from nodejs'
-        };
-        res.json(data);
+        res.send('Hello from nodejs');
     });
 
     app.post('/addPlan', function(req, res, next) {
