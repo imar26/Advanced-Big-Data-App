@@ -1,4 +1,6 @@
 module.exports = function (app, client) {
+    var async = require('async');
+    var redis = require('redis');
 
     // Strong Etag
     app.set('etag', 'strong');
@@ -199,6 +201,8 @@ module.exports = function (app, client) {
                                                     console.log(err);
                                                 }
                                             });
+
+                                            // MAKE SURE YOU UNCOMMENT THIS.
                                             client.sadd(_id + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, _id + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]);                                            
                                         }
                                     }
@@ -207,7 +211,7 @@ module.exports = function (app, client) {
                         } else {
                             for (let innerkey in value) {
                                 let innerValue = value[innerkey];
-                                client.hmset(_id + "-" + value["objectType"]+"-"+value["objectId"], value, function(err, result) {
+                                client.hmset(_id + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, value, function(err, result) {
                                     if(err) {
                                         console.log(err);
                                     }
@@ -241,55 +245,115 @@ module.exports = function (app, client) {
     app.get('/plan/:planId', function(req, res, next) {
         let planId = req.params.planId;
         // console.log(planId);
+        
+        var plans = [];
 
-        client.keys(planId+"*", function(err, result) {
-            if(err) {
-                console.log(err);
-            }
-            var finalResult = [];
+        client.keys(planId+'*', function (err, log_list) {
+            var multi = client.multi();
+            var keys = Object.keys(log_list);
+            var i = 0;
 
-            client.smembers("8a13fe60-23e1-11e8-b9c1-090d7ee5efa7-plan-12xvxc345ssdsds-planCostShares", function(error, output) {
-                if(error) {
-                    // console.log(error);
-                }
-                // console.log("Before Output");
-                // console.log(output);
-                console.log(output);
-                for(let j=0; j<output.length; j++) {
-                    console.log();
-                }
-                // if(output) {
-                //     finalResult.push(output);
-                // }
-                // res.json(finalResult);
-                // console.log(finalResult);
+            keys.forEach(function (l) {
+                client.hgetall(log_list[l], function(e, o) {
+                    i++;
+                    if (e) {
+                        // console.log(e);
+                        var arrayplans = [];
+                        client.smembers(log_list[l], function(err, result) {
+                            if(err) {
+                                console.log(error);
+                            } else {
+                                var setkeys = Object.keys(result);
+                                var j=0;
 
-                // console.log("**********************************");
-                // console.log("After Output");
+                                setkeys.forEach(function(k) {
+                                    client.hgetall(result[k], function(error, output) {
+                                        j++;
+                                        if(error) {
+                                            console.log(error);
+                                        } else {
+                                            temp_data = output;
+                                            arrayplans.push(temp_data);
+                                            plans.push(arrayplans);
+                                        }
+
+                                        // if (j == setkeys.length) {
+                                        //     // console.log(plans);
+                                        //     res.json(plans);
+                                        // }
+                                    });
+                                });
+                            }
+                        });
+                    } else {
+                        temp_data = {'key':log_list[l], 'modified_at':o};
+                        plans.push(temp_data);
+                    }
+    
+                    if (i == keys.length) {
+                        // console.log(plans);
+                        res.json(plans);
+                    }
+    
+                });
             });
+        });        
+        
+        // function MHGETALL(keys, cb) {
+        //     client.multi({pipeline: false});
+        
+        //     keys.forEach(function(key, index){
+        //         client.hgetall(key);
+        //     });
+        
+        //     client.exec(function(err, result){
+        //         cb(err, result);
+        //     });
+        // }
 
-            // for(let i=0; i<result.length; i++) {
-                // client.hgetall("8a13fe60-23e1-11e8-b9c1-090d7ee5efa7-plan-12xvxc345ssdsds", function(error, output) {
-                //     if(error) {
-                //         // console.log(error);
-                //     }
-                //     // console.log("Before Output");
-                //     // console.log(output);
-                //     // console.log(output);
-                //     if(output) {
-                //         finalResult.push(output);
-                //     }
-                //     res.json(finalResult[0]);
-                //     // console.log(finalResult);
+        // client.multi()
+        //     .keys(planId+'*', function (err, replies) {
+        //         // NOTE: code in this callback is NOT atomic
+        //         // this only happens after the the .exec call finishes.
+        //         console.log(replies);
+        //         client.hgetall(replies, redis.print);
+        //     })
+        //     .exec(function (err, replies) {
+        //         console.log("MULTI got " + replies.length + " replies");
+        //         replies.forEach(function (reply, index) {
+        //             console.log("Reply " + index + ": " + reply);
+        //         });
+        //     });
 
-                //     // console.log("**********************************");
-                //     // console.log("After Output");
-                // });
-            //     // console.log(finalResult);
-            // }
-            // console.log(finalResult);
-            // res.json(finalResult);
-        });
+        // client.keys(planId+'*', function (err, keys) {
+        //     if(err) {
+        //         console.log(err);
+        //     }
+        //     if(keys) {
+        //         async.map(keys, function(key, cb) {
+        //             // console.log(keys);
+        //             client.hgetall(key, function (error, value) {
+        //                 if (error) {
+        //                     return cb(error);
+        //                 }
+        //                 // var plan = {};
+        //                 // console.log(key);
+        //                 // console.log(value);
+        //                 plans.push(value);
+        //                 // job['jobId']=key;
+        //                 // job['data']=value;
+        //                 cb(null, plans);
+        //             });
+        //         }, function (error, results) {
+        //             if (error) {
+        //                 return console.log(error);
+        //             }
+        //             console.log(results);
+        //             res.json(results);
+        //         });
+        //     }
+        // });
+
         // client.get(planId, function(err, result) {
         //     if(err) {
         //         console.log(err);
@@ -313,18 +377,29 @@ module.exports = function (app, client) {
         // });
     });
 
-    app.delete('/deletePlan/:planId', function(req, res, next) {
+    app.delete('/plan/:planId', function(req, res, next) {
         let planId = req.params.planId;
-        client.del(planId, function(err, result) {
+
+        client.keys(planId+"*", function(err, result) {
             if(err) {
                 console.log(err);
             }
-            if(result) {
-                res.sendStatus(200);
+            if(result.length > 0) {
+                client.del(result, function(err, deleted) {
+                    if(err) {
+                        console.log(err);
+                    }
+                    if(deleted) {
+                        res.status(200).send("All the keys with Plan Id " + planId + " are deleted");
+                    } else {
+                        res.status(404).send("Plan Id " + planId + " does not exists");
+                    }
+                });
             } else {
-                res.sendStatus(404);
+                res.status(404).send("Plan Id " + planId + " does not exists");
             }
         });
+        
     });
 
     // Another way to validate Data with JSON Schema
