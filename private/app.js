@@ -1,8 +1,9 @@
 module.exports = function (app, client) {
+    // Defining modules
     var async = require('async');
     var redis = require('redis');
 
-    // Strong Etag
+    // Enabling Strong Etag
     app.set('etag', 'strong');
 
     // Data Validation
@@ -109,7 +110,7 @@ module.exports = function (app, client) {
         "additionalProperties": false        
     };
 
-    // Test data used initially for testing
+    // Hardcoded data used initially for testing
     // var data = {
     //     "planCostShares": {
     //         "deductible": 20,
@@ -167,6 +168,7 @@ module.exports = function (app, client) {
         res.send('Hello from nodejs');
     });
 
+    // Add a new plan
     app.post('/plan', function(req, res, next) {
         const uuidv1 = require('uuid/v1');
         let _id = uuidv1();
@@ -238,10 +240,7 @@ module.exports = function (app, client) {
         }
     });
 
-    app.get('/getAllPlans', function (req, res, next) {
-        res.send('Displays all the plans.');
-    });
-
+    // Retrieve plan details using plan id
     app.get('/plan/:planId', function(req, res, next) {
         let planId = req.params.planId;
         // console.log(planId);
@@ -377,6 +376,8 @@ module.exports = function (app, client) {
         // });
     });
 
+
+    // Delete plan using plan id
     app.delete('/plan/:planId', function(req, res, next) {
         let planId = req.params.planId;
 
