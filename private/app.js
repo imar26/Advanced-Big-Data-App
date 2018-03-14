@@ -300,74 +300,6 @@ module.exports = function (app, client) {
                             res.status(200).json(plan);
                         }                                  
                     });
-                    
-                    // if(plans[k].indexOf("linkedPlanServices") > -1) {
-                    //     client.smembers(plans[k], function(err, result) {
-                    //         var setresult = Object.keys(result);
-                    //         var j=0;
-                    //         var arrayObject = [];
-                    //         setresult.forEach(function(index) {
-                    //             client.hgetall(result[index], function(error, hashresult) {
-                    //                 j++;
-                    //                 if(error) {
-                    //                     console.log(error);
-                    //                 } else {
-                    //                     arrayObject.push(hashresult);
-                    //                     plan.push({'linkedPlanServices': arrayObject});
-                    //                 }
-                    //                 if (j == setresult.length) {
-                    //                     res.json(plan[0]);
-                    //                 }
-                    //             });                            
-                    //         });
-                    //     });
-                    // } else if(plans[k].startsWith(planId+"-planservice")) {
-                    //     client.hgetall(plans[k], function(err, result) {
-                    //         console.log(result);
-                    //     });                  
-                    // }
-                    // client.hgetall(log_list[l], function(e, o) {
-                    //     i++;
-                    //     if (e) {
-                    //         // console.log(e);
-                    //         var arrayplans = [];
-                    //         client.smembers(log_list[l], function(err, result) {
-                    //             if(err) {
-                    //                 console.log(error);
-                    //             } else {
-                    //                 var setkeys = Object.keys(result);
-                    //                 var j=0;
-
-                    //                 setkeys.forEach(function(k) {
-                    //                     client.hgetall(result[k], function(error, output) {
-                    //                         j++;
-                    //                         if(error) {
-                    //                             console.log(error);
-                    //                         } else {
-                    //                             temp_data = output;
-                    //                             arrayplans.push(temp_data);
-                    //                             plans.push(arrayplans);
-                    //                         }
-
-                    //                         // if (j == setkeys.length) {
-                    //                         //     // console.log(plans);
-                    //                         //     res.json(plans);
-                    //                         // }
-                    //                     });
-                    //                 });
-                    //             }
-                    //         });
-                    //     } else {
-                    //         temp_data = {'key':log_list[l], 'modified_at':o};
-                    //         plans.push(temp_data);
-                    //     }
-        
-                    //     if (i == keys.length) {
-                    //         // console.log(plans);
-                    //         res.json(plans);
-                    //     }
-        
-                    // });
                 });
             } else {
                 res.status(404).send("Plan Id " + planId + " does not exists");
@@ -375,6 +307,81 @@ module.exports = function (app, client) {
         });
     });
 
+    // Update an existing plan
+    app.put('/plan/:planId', function(req, res, next) {
+        let planId = req.params.planId;
+        client.keys(planId+'*', function (err, plans) {
+            if(plans.length > 0) {
+                let addPlan = req.body;
+
+                let errors = v.validate(addPlan, schema).errors;
+                if (errors.length < 1) {
+                    
+                    for (let key in addPlan) {
+                        // check also if property is not inherited from prototype
+                        if (addPlan.hasOwnProperty(key)) {
+                            let value = addPlan[key];
+                            if(typeof(value) == 'object') {
+                                if(value instanceof Array) {
+                                    for(let i=0; i<value.length; i++) {
+                                        let eachValue = value[i];
+                                        // console.log(eachValue);
+                                        for (let innerkey in eachValue) {
+                                            if (eachValue.hasOwnProperty(innerkey)) {
+                                                let innerValue = eachValue[innerkey];
+                                                if(typeof(innerValue) == 'object') {
+                                                    client.hmset(planId + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]+"-"+innerkey, innerValue, function(err, result) {
+                                                        if(err) {
+                                                            console.log(err);
+                                                        }
+                                                    });
+                                                    // client.sadd(planId + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]+"-"+innerkey, planId + "-" + innerValue["objectType"]+"-"+innerValue["objectId"]);                                            
+                                                } else {
+                                                    client.hset(planId + "-" + eachValue["objectType"]+"-"+eachValue["objectId"], innerkey, innerValue, function(err, result) {
+                                                        if(err) {
+                                                            console.log(err);
+                                                        }
+                                                    });
+
+                                                    // MAKE SURE YOU UNCOMMENT THIS.
+                                                    client.sadd(planId + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, planId + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]);                                            
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    for (let innerkey in value) {
+                                        let innerValue = value[innerkey];
+                                        client.hmset(planId + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, value, function(err, result) {
+                                            if(err) {
+                                                console.log(err);
+                                            }
+                                        });
+                                        // client.sadd(planId + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, planId + "-" + value["objectType"]+"-"+value["objectId"]);
+                                    }                            
+                                }
+                            } else {
+                                client.hset(planId + "-" + addPlan["objectType"]+"-"+addPlan["objectId"], key, value, function(err, result) {
+                                    if(err) {
+                                        console.log(err);
+                                    }
+                                });
+                            }
+                        }
+                    }
+                    res.status(200).send("The keys of the plan id " + planId + " are updated");
+                } else {
+                    var errorArray = [];
+                    for (let i = 0; i < errors.length; i++) {
+                        errorArray.push(errors[i].stack);
+                    }
+                    res.status(400).send(errorArray);
+                }
+            } else {
+                res.status(404).send("Plan Id " + planId + " does not exists");
+            }
+        });
+    });
 
     // Delete plan using plan id
     app.delete('/plan/:planId', function(req, res, next) {
