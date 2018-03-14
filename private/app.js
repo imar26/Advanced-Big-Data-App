@@ -251,7 +251,7 @@ module.exports = function (app, client) {
         };
 
         client.keys(planId+'*', function (err, plans) {
-            var keys = Object.keys(plans);
+            var keys = Object.keys(plans.sort());
             var i = 0;
             var l = 0;
             keys.forEach(function (k) {
@@ -265,7 +265,12 @@ module.exports = function (app, client) {
                         // plan["linkedPlanServices"][l] = {};
                         linkedPlanServices["linkedService"] = result;
                         // plan["linkedPlanServices"][l] = {"linkedService":result};
-                        // l++;                        
+                        // l++;    
+                        if(linkedPlanServices["linkedService"] != undefined && linkedPlanServices["planserviceCostShares"] != undefined) {
+                            plan["linkedPlanServices"][l] = linkedPlanServices;
+                            l++;
+                            linkedPlanServices = {};
+                        }                    
                     }
                     
                     if(plans[k].startsWith(planId+"-planservice-") && plans[k].indexOf("planserviceCostShares") > -1 && typeof(result) != "undefined") {                            
@@ -273,10 +278,18 @@ module.exports = function (app, client) {
                         linkedPlanServices["planserviceCostShares"] = result;
                         // plan["linkedPlanServices"][l] = {"planserviceCostShares":result};
                         // console.log(linkedPlanServices);
-                        plan["linkedPlanServices"][l] = linkedPlanServices;
-                        l++;        
-                        linkedPlanServices = {};               
-                    }                                   
+                        
+                        // plan["linkedPlanServices"][l] = linkedPlanServices;
+                        // l++;        
+                        // linkedPlanServices = {};   
+                        if(linkedPlanServices["linkedService"] != undefined && linkedPlanServices["planserviceCostShares"] != undefined) {
+                            plan["linkedPlanServices"][l] = linkedPlanServices;
+                            l++;
+                            linkedPlanServices = {};
+                        }            
+                    }                  
+                    
+                    
 
                     if(plans[k].startsWith(planId+"-plan-") && plans[k].indexOf("planCostShares") < 0 && typeof(result) != "undefined") {
                         var resultKeys = Object.keys(result);
