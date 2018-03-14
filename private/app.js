@@ -245,56 +245,119 @@ module.exports = function (app, client) {
         let planId = req.params.planId;
         // console.log(planId);
         
-        var plans = [];
+        var plan = {};
+        plan["linkedPlanServices"] = [];                    
+        var linkedPlanServices = {
+        };
 
-        client.keys(planId+'*', function (err, log_list) {
-            var multi = client.multi();
-            var keys = Object.keys(log_list);
+        client.keys(planId+'*', function (err, plans) {
+            var keys = Object.keys(plans);
             var i = 0;
-
-            keys.forEach(function (l) {
-                client.hgetall(log_list[l], function(e, o) {
+            var l = 0;
+            keys.forEach(function (k) {
+                client.hgetall(plans[k], function(err, result) {
                     i++;
-                    if (e) {
-                        // console.log(e);
-                        var arrayplans = [];
-                        client.smembers(log_list[l], function(err, result) {
-                            if(err) {
-                                console.log(error);
-                            } else {
-                                var setkeys = Object.keys(result);
-                                var j=0;
-
-                                setkeys.forEach(function(k) {
-                                    client.hgetall(result[k], function(error, output) {
-                                        j++;
-                                        if(error) {
-                                            console.log(error);
-                                        } else {
-                                            temp_data = output;
-                                            arrayplans.push(temp_data);
-                                            plans.push(arrayplans);
-                                        }
-
-                                        // if (j == setkeys.length) {
-                                        //     // console.log(plans);
-                                        //     res.json(plans);
-                                        // }
-                                    });
-                                });
-                            }
-                        });
-                    } else {
-                        temp_data = {'key':log_list[l], 'modified_at':o};
-                        plans.push(temp_data);
+                    if(plans[k].indexOf("planCostShares") > -1 && typeof(result) != "undefined") {
+                        plan["planCostShares"] = result;
                     }
-    
-                    if (i == keys.length) {
-                        // console.log(plans);
-                        res.json(plans);
+
+                    if(plans[k].startsWith(planId+"-planservice-") && plans[k].indexOf("linkedService") > -1 && typeof(result) != "undefined") {                            
+                        // plan["linkedPlanServices"][l] = {};
+                        linkedPlanServices["linkedService"] = result;
+                        // plan["linkedPlanServices"][l] = {"linkedService":result};
+                        // l++;                        
                     }
-    
+                    
+                    if(plans[k].startsWith(planId+"-planservice-") && plans[k].indexOf("planserviceCostShares") > -1 && typeof(result) != "undefined") {                            
+                        // plan["linkedPlanServices"][l] = {};
+                        linkedPlanServices["planserviceCostShares"] = result;
+                        // plan["linkedPlanServices"][l] = {"planserviceCostShares":result};
+                        // console.log(linkedPlanServices);
+                        plan["linkedPlanServices"][l] = linkedPlanServices;
+                        l++;        
+                        linkedPlanServices = {};               
+                    }                                   
+
+                    if(plans[k].startsWith(planId+"-plan-") && plans[k].indexOf("planCostShares") < 0 && typeof(result) != "undefined") {
+                        var resultKeys = Object.keys(result);
+                        var resultValues = Object.values(result);
+                        for(var j=0; j<resultKeys.length; j++) {
+                            plan[resultKeys[j]] = resultValues[j];
+                        }
+                    }
+
+                    if(i == keys.length) {
+                        res.json(plan);
+                    }                                    
                 });
+                
+                // if(plans[k].indexOf("linkedPlanServices") > -1) {
+                //     client.smembers(plans[k], function(err, result) {
+                //         var setresult = Object.keys(result);
+                //         var j=0;
+                //         var arrayObject = [];
+                //         setresult.forEach(function(index) {
+                //             client.hgetall(result[index], function(error, hashresult) {
+                //                 j++;
+                //                 if(error) {
+                //                     console.log(error);
+                //                 } else {
+                //                     arrayObject.push(hashresult);
+                //                     plan.push({'linkedPlanServices': arrayObject});
+                //                 }
+                //                 if (j == setresult.length) {
+                //                     res.json(plan[0]);
+                //                 }
+                //             });                            
+                //         });
+                //     });
+                // } else if(plans[k].startsWith(planId+"-planservice")) {
+                //     client.hgetall(plans[k], function(err, result) {
+                //         console.log(result);
+                //     });                  
+                // }
+                // client.hgetall(log_list[l], function(e, o) {
+                //     i++;
+                //     if (e) {
+                //         // console.log(e);
+                //         var arrayplans = [];
+                //         client.smembers(log_list[l], function(err, result) {
+                //             if(err) {
+                //                 console.log(error);
+                //             } else {
+                //                 var setkeys = Object.keys(result);
+                //                 var j=0;
+
+                //                 setkeys.forEach(function(k) {
+                //                     client.hgetall(result[k], function(error, output) {
+                //                         j++;
+                //                         if(error) {
+                //                             console.log(error);
+                //                         } else {
+                //                             temp_data = output;
+                //                             arrayplans.push(temp_data);
+                //                             plans.push(arrayplans);
+                //                         }
+
+                //                         // if (j == setkeys.length) {
+                //                         //     // console.log(plans);
+                //                         //     res.json(plans);
+                //                         // }
+                //                     });
+                //                 });
+                //             }
+                //         });
+                //     } else {
+                //         temp_data = {'key':log_list[l], 'modified_at':o};
+                //         plans.push(temp_data);
+                //     }
+    
+                //     if (i == keys.length) {
+                //         // console.log(plans);
+                //         res.json(plans);
+                //     }
+    
+                // });
             });
         });        
         
