@@ -262,6 +262,14 @@ module.exports = function (app, client) {
                             plan["planCostShares"] = result;
                         }
 
+                        if(plans[k].startsWith(planId+"-planservice-") && plans[k].indexOf("linkedService") < 0 && plans[k].indexOf("planserviceCostShares") < 0 && typeof(result) != "undefined") {
+                            var resultKeys = Object.keys(result);
+                            var resultValues = Object.values(result);
+                            for(var j=0; j<resultKeys.length; j++) {
+                                linkedPlanServices[resultKeys[j]] = resultValues[j];
+                            }
+                        }
+
                         if(plans[k].startsWith(planId+"-planservice-") && plans[k].indexOf("linkedService") > -1 && typeof(result) != "undefined") {                            
                             linkedPlanServices["linkedService"] = result;  
                             if(linkedPlanServices["linkedService"] != undefined && linkedPlanServices["planserviceCostShares"] != undefined) {
@@ -278,7 +286,7 @@ module.exports = function (app, client) {
                                 l++;
                                 linkedPlanServices = {};
                             }            
-                        }                  
+                        }
 
                         if(plans[k].startsWith(planId+"-plan-") && plans[k].indexOf("planCostShares") < 0 && typeof(result) != "undefined") {
                             var resultKeys = Object.keys(result);
