@@ -6,13 +6,17 @@ Created an application where the user can add data in the form of JSON object in
 
 - JSON Schema Validation
 - E-tag
-- Breaking down the JSON document and storing each object as Hashes and Sets in Redis
+- Create, Read, Update and Delete plans
+- Token Generation and Token Verification
+- Elastic Search
 
 ## Technologies Used
 
 - Node.js
+- Express.js
 - Redis
 - REST API
+- JSON Web Tokens
 
 ## Tools Used
 
