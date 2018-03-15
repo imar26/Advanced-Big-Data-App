@@ -433,7 +433,7 @@ module.exports = function (app, client) {
         if (token) {
             jwt.verify(token, new Buffer( 'thisismytoken', 'base64' ), function (err, decoded) {
                 if (err) {
-                    return res.status(403).json({
+                    return res.status(401).json({
                         message: 'Failed to authenticate token: ' + err.message
                     });
                 } else {
@@ -445,7 +445,7 @@ module.exports = function (app, client) {
                 }
             });
         } else {
-            return res.status(403).send({ 
+            return res.status(404).send({ 
                 message: 'No token provided.' 
             });
         }
