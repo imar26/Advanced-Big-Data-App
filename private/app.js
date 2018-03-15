@@ -314,73 +314,85 @@ module.exports = function (app, client) {
     // Update an existing plan
     app.put('/plan/:planId', function (req, res, next) {
         let planId = req.params.planId;
-        client.keys(planId + '*', function (err, plans) {
-            if (plans.length > 0) {
-                let addPlan = req.body;
+        client.keys(planId + "*", function (err, result) {
+            if (err) {
+                console.log(err);
+            }
+            if (result.length > 0) {
+                client.del(result, function (err, deleted) {
+                    if (err) {
+                        console.log(err);
+                    }
+                    if (deleted) {
+                        let addPlan = req.body;
 
-                let errors = v.validate(addPlan, schema).errors;
-                if (errors.length < 1) {
+                        let errors = v.validate(addPlan, schema).errors;
+                        if (errors.length < 1) {
 
-                    for (let key in addPlan) {
-                        // check also if property is not inherited from prototype
-                        if (addPlan.hasOwnProperty(key)) {
-                            let value = addPlan[key];
-                            if (typeof (value) == 'object') {
-                                if (value instanceof Array) {
-                                    for (let i = 0; i < value.length; i++) {
-                                        let eachValue = value[i];
-                                        // console.log(eachValue);
-                                        for (let innerkey in eachValue) {
-                                            if (eachValue.hasOwnProperty(innerkey)) {
-                                                let innerValue = eachValue[innerkey];
-                                                if (typeof (innerValue) == 'object') {
-                                                    client.hmset(planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"] + "-" + innerkey, innerValue, function (err, result) {
-                                                        if (err) {
-                                                            console.log(err);
+                            for (let key in addPlan) {
+                                // check also if property is not inherited from prototype
+                                if (addPlan.hasOwnProperty(key)) {
+                                    let value = addPlan[key];
+                                    if (typeof (value) == 'object') {
+                                        if (value instanceof Array) {
+                                            for (let i = 0; i < value.length; i++) {
+                                                let eachValue = value[i];
+                                                // console.log(eachValue);
+                                                for (let innerkey in eachValue) {
+                                                    if (eachValue.hasOwnProperty(innerkey)) {
+                                                        let innerValue = eachValue[innerkey];
+                                                        if (typeof (innerValue) == 'object') {
+                                                            client.hmset(planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"] + "-" + innerkey, innerValue, function (err, result) {
+                                                                if (err) {
+                                                                    console.log(err);
+                                                                }
+                                                            });
+                                                            // client.sadd(planId + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]+"-"+innerkey, planId + "-" + innerValue["objectType"]+"-"+innerValue["objectId"]);                                            
+                                                        } else {
+                                                            client.hset(planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"], innerkey, innerValue, function (err, result) {
+                                                                if (err) {
+                                                                    console.log(err);
+                                                                }
+                                                            });
+
+                                                            // MAKE SURE YOU UNCOMMENT THIS.
+                                                            client.sadd(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"]);
                                                         }
-                                                    });
-                                                    // client.sadd(planId + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]+"-"+innerkey, planId + "-" + innerValue["objectType"]+"-"+innerValue["objectId"]);                                            
-                                                } else {
-                                                    client.hset(planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"], innerkey, innerValue, function (err, result) {
-                                                        if (err) {
-                                                            console.log(err);
-                                                        }
-                                                    });
-
-                                                    // MAKE SURE YOU UNCOMMENT THIS.
-                                                    client.sadd(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"]);
+                                                    }
                                                 }
                                             }
+                                        } else {
+                                            for (let innerkey in value) {
+                                                let innerValue = value[innerkey];
+                                                client.hmset(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, value, function (err, result) {
+                                                    if (err) {
+                                                        console.log(err);
+                                                    }
+                                                });
+                                                // client.sadd(planId + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, planId + "-" + value["objectType"]+"-"+value["objectId"]);
+                                            }
                                         }
-                                    }
-                                } else {
-                                    for (let innerkey in value) {
-                                        let innerValue = value[innerkey];
-                                        client.hmset(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, value, function (err, result) {
+                                    } else {
+                                        client.hset(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"], key, value, function (err, result) {
                                             if (err) {
                                                 console.log(err);
                                             }
                                         });
-                                        // client.sadd(planId + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, planId + "-" + value["objectType"]+"-"+value["objectId"]);
                                     }
                                 }
-                            } else {
-                                client.hset(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"], key, value, function (err, result) {
-                                    if (err) {
-                                        console.log(err);
-                                    }
-                                });
                             }
+                            res.status(200).send("The keys of the plan id " + planId + " are updated");
+                        } else {
+                            var errorArray = [];
+                            for (let i = 0; i < errors.length; i++) {
+                                errorArray.push(errors[i].stack);
+                            }
+                            res.status(400).send(errorArray);
                         }
+                    } else {
+                        res.status(404).send("Plan Id " + planId + " does not exists");
                     }
-                    res.status(200).send("The keys of the plan id " + planId + " are updated");
-                } else {
-                    var errorArray = [];
-                    for (let i = 0; i < errors.length; i++) {
-                        errorArray.push(errors[i].stack);
-                    }
-                    res.status(400).send(errorArray);
-                }
+                });
             } else {
                 res.status(404).send("Plan Id " + planId + " does not exists");
             }
@@ -417,7 +429,7 @@ module.exports = function (app, client) {
     app.post('/token', function (req, res, next) {
         jwt.sign({
             'validJson': true
-        }, new Buffer( 'thisismytoken', 'base64' ), {
+        }, new Buffer('thisismytoken', 'base64'), {
             expiresIn: 60 // expires in 1 minute
         }, function (err, token) {
             res.status(201).json({
@@ -431,7 +443,7 @@ module.exports = function (app, client) {
     app.get('/token', function (req, res, next) {
         var token = req.body.token || req.query.token || req.headers['x-access-token'];
         if (token) {
-            jwt.verify(token, new Buffer( 'thisismytoken', 'base64' ), function (err, decoded) {
+            jwt.verify(token, new Buffer('thisismytoken', 'base64'), function (err, decoded) {
                 if (err) {
                     return res.status(401).json({
                         message: 'Failed to authenticate token: ' + err.message
@@ -445,8 +457,8 @@ module.exports = function (app, client) {
                 }
             });
         } else {
-            return res.status(404).send({ 
-                message: 'No token provided.' 
+            return res.status(404).send({
+                message: 'No token provided.'
             });
         }
     });
