@@ -364,21 +364,20 @@ module.exports = function (app, client) {
                     });
                 } else {
                     let planId = req.params.planId;
-                    client.keys(planId + "*", function (err, result) {
-                        if (err) {
-                            console.log(err);
-                        }
-                        if (result.length > 0) {
-                            client.del(result, function (err, deleted) {
-                                if (err) {
-                                    console.log(err);
-                                }
-                                if (deleted) {
-                                    let addPlan = req.body;
+                    let addPlan = req.body;
 
-                                    let errors = v.validate(addPlan, schema).errors;
-                                    if (errors.length < 1) {
-
+                    let errors = v.validate(addPlan, schema).errors;
+                    if (errors.length < 1) {
+                        client.keys(planId + "*", function (err, result) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            if (result.length > 0) {
+                                client.del(result, function (err, deleted) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    if (deleted) {
                                         for (let key in addPlan) {
                                             // check also if property is not inherited from prototype
                                             if (addPlan.hasOwnProperty(key)) {
@@ -433,20 +432,20 @@ module.exports = function (app, client) {
                                         }
                                         res.status(200).send("The keys of the plan id " + planId + " are updated");
                                     } else {
-                                        var errorArray = [];
-                                        for (let i = 0; i < errors.length; i++) {
-                                            errorArray.push(errors[i].stack);
-                                        }
-                                        res.status(400).send(errorArray);
+                                        res.status(404).send("Plan Id " + planId + " does not exists");
                                     }
-                                } else {
-                                    res.status(404).send("Plan Id " + planId + " does not exists");
-                                }
-                            });
-                        } else {
-                            res.status(404).send("Plan Id " + planId + " does not exists");
+                                });
+                            } else {
+                                res.status(404).send("Plan Id " + planId + " does not exists");
+                            }
+                        });     
+                    } else {
+                        var errorArray = [];
+                        for (let i = 0; i < errors.length; i++) {
+                            errorArray.push(errors[i].stack);
                         }
-                    });
+                        res.status(400).send(errorArray);
+                    }
                 }
             });
         } else {
