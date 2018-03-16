@@ -428,7 +428,7 @@ module.exports = function (app, client) {
     // Generate Token
     app.post('/token', function (req, res, next) {
         jwt.sign({
-            'validJson': true
+            'tokenCreator': "Aadesh"
         }, new Buffer('thisismytoken', 'base64'), {
             expiresIn: 60 // expires in 1 minute
         }, function (err, token) {
@@ -456,7 +456,8 @@ module.exports = function (app, client) {
                     req.decoded = decoded;
                     next();
                     res.status(200).json({
-                        message: 'Token validation successfull'
+                        message: 'Token validation successfull',
+                        decoded: decoded
                     });
                 }
             });
