@@ -504,7 +504,7 @@ module.exports = function (app, client) {
         jwt.sign({
             'tokenCreator': "Aadesh"
         }, new Buffer('thisismytoken', 'base64'), {
-            expiresIn: 300 // expires in 5 minutes
+            expiresIn: 180 // expires in 3 minutes
         }, function (err, token) {
             res.status(201).json({
                 message: 'The token has been generated',
