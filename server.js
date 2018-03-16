@@ -17,9 +17,6 @@ client.on('connect', function() {
     console.log('Connecting to redis.....');
 });
 
-// Comment out because application is not using front end
-// app.use(express.static(__dirname + '/public'));
-
 require('./private/app.js')(app, client);
 
 var port = 3000;
