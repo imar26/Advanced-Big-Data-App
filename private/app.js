@@ -441,24 +441,28 @@ module.exports = function (app, client) {
 
     // Verify Token
     app.get('/token', function (req, res, next) {
-        var token = req.body.token || req.query.token || req.headers['x-access-token'];
+        if(req.headers.authorization) {
+            var token = req.body.token || req.headers.authorization.split(" ")[1];
+        } else {
+            var token = req.body.token || req.query.token || req.headers['x-access-token'];
+        }
         if (token) {
             jwt.verify(token, new Buffer('thisismytoken', 'base64'), function (err, decoded) {
                 if (err) {
                     return res.status(401).json({
-                        message: 'Failed to authenticate token: ' + err.message
+                        message: 'Failed to authenticate token : ' + err.message
                     });
                 } else {
                     req.decoded = decoded;
                     next();
                     res.status(200).json({
-                        message: 'Token validation successfull.'
+                        message: 'Token validation successfull'
                     });
                 }
             });
         } else {
             return res.status(404).send({
-                message: 'No token provided.'
+                message: 'No token provided'
             });
         }
     });
