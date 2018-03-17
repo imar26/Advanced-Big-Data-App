@@ -12,108 +12,104 @@ module.exports = function (app, client) {
     var v = new Validator();
 
     // JSON Schema
-    var schema = {
-        "$schema": "http://json-schema.org/draft-04/schema#",
-        "title": "JSON Schema",
-        "description": "JSON Schema for the Use Case",
-        "type": "object",
-        "properties": {
-            "planCostShares": {
-                "type": "object",
-                "properties": {
-                    "deductible": {
-                        "type": "number"
-                    },
-                    "_org": {
-                        "type": "string"
-                    },
-                    "copay": {
-                        "type": "number"
-                    },
-                    "objectId": {
-                        "type": "string"
-                    },
-                    "objectType": {
-                        "type": "string"
-                    }
-                }
-            },
-            "linkedPlanServices": {
-                "type": "array",
-                "items": {
-                    "type": "object",
-                    "properties": {
-                        "linkedService": {
-                            "type": "object",
-                            "properties": {
-                                "_org": {
-                                    "type": "string"
-                                },
-                                "objectId": {
-                                    "type": "string"
-                                },
-                                "objectType": {
-                                    "type": "string"
-                                },
-                                "name": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "planserviceCostShares": {
-                            "type": "object",
-                            "properties": {
-                                "deductible": {
-                                    "type": "number"
-                                },
-                                "_org": {
-                                    "type": "string"
-                                },
-                                "copay": {
-                                    "type": "number"
-                                },
-                                "objectId": {
-                                    "type": "string"
-                                },
-                                "objectType": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "_org": {
-                            "type": "string"
-                        },
-                        "objectId": {
-                            "type": "string"
-                        },
-                        "objectType": {
-                            "type": "string"
-                        }
-                    }
-                }
-            },
-            "_org": {
-                "type": "string"
-            },
-            "objectId": {
-                "type": "string"
-            },
-            "objectType": {
-                "type": "string"
-            },
-            "planType": {
-                "type": "string"
-            },
-            "creationDate": {
-                "type": "string"
-            }
-            // Testing by updating the JSON Schema
-            // "endDate": {
-            //     "type": "string"
-            // }
-        },
-        "additionalProperties": false
-    };
+    // var schema = {
+    //     "$schema": "http://json-schema.org/draft-04/schema#",
+    //     "title": "JSON Schema",
+    //     "description": "JSON Schema for the Use Case",
+    //     "type": "object",
+    //     "properties": {
+    //         "planCostShares": {
+    //             "type": "object",
+    //             "properties": {
+    //                 "deductible": {
+    //                     "type": "number"
+    //                 },
+    //                 "_org": {
+    //                     "type": "string"
+    //                 },
+    //                 "copay": {
+    //                     "type": "number"
+    //                 },
+    //                 "objectId": {
+    //                     "type": "string"
+    //                 },
+    //                 "objectType": {
+    //                     "type": "string"
+    //                 }
+    //             }
+    //         },
+    //         "linkedPlanServices": {
+    //             "type": "array",
+    //             "items": {
+    //                 "type": "object",
+    //                 "properties": {
+    //                     "linkedService": {
+    //                         "type": "object",
+    //                         "properties": {
+    //                             "_org": {
+    //                                 "type": "string"
+    //                             },
+    //                             "objectId": {
+    //                                 "type": "string"
+    //                             },
+    //                             "objectType": {
+    //                                 "type": "string"
+    //                             },
+    //                             "name": {
+    //                                 "type": "string"
+    //                             }
+    //                         }
+    //                     },
+    //                     "planserviceCostShares": {
+    //                         "type": "object",
+    //                         "properties": {
+    //                             "deductible": {
+    //                                 "type": "number"
+    //                             },
+    //                             "_org": {
+    //                                 "type": "string"
+    //                             },
+    //                             "copay": {
+    //                                 "type": "number"
+    //                             },
+    //                             "objectId": {
+    //                                 "type": "string"
+    //                             },
+    //                             "objectType": {
+    //                                 "type": "string"
+    //                             }
+    //                         }
+    //                     },
+    //                     "_org": {
+    //                         "type": "string"
+    //                     },
+    //                     "objectId": {
+    //                         "type": "string"
+    //                     },
+    //                     "objectType": {
+    //                         "type": "string"
+    //                     }
+    //                 }
+    //             }
+    //         },
+    //         "_org": {
+    //             "type": "string"
+    //         },
+    //         "objectId": {
+    //             "type": "string"
+    //         },
+    //         "objectType": {
+    //             "type": "string"
+    //         },
+    //         "planType": {
+    //             "type": "string"
+    //         },
+    //         "creationDate": {
+    //             "type": "string"
+    //         }
+    //     },
+    //     "additionalProperties": false
+    // };
 
     // Hardcoded data used initially for testing
     // var data = {
@@ -173,6 +169,77 @@ module.exports = function (app, client) {
         res.send('Hello from nodejs');
     });
 
+    // Add schema
+    app.post('/schema', function (req, res, next) {
+        if (req.headers.authorization) {
+            var token = req.body.token || req.headers.authorization.split(" ")[1];
+        } else {
+            var token = req.body.token || req.query.token || req.headers['x-access-token'];
+        }
+        if (token) {
+            jwt.verify(token, new Buffer('thisismytoken', 'base64'), function (err, decoded) {
+                if (err) {
+                    return res.status(401).json({
+                        message: 'Failed to authenticate token : ' + err.message
+                    });
+                } else {
+                    let addPlan = req.body;
+
+                    client.set("jsonSchema", JSON.stringify(addPlan), function (err, result) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        res.status(201).send("The schema is created");
+                    });
+                }
+            });
+        } else {
+            return res.status(404).send({
+                message: 'No token provided'
+            });
+        }
+    });
+
+    // Update schema
+    app.put('/schema', function (req, res, next) {
+        if (req.headers.authorization) {
+            var token = req.body.token || req.headers.authorization.split(" ")[1];
+        } else {
+            var token = req.body.token || req.query.token || req.headers['x-access-token'];
+        }
+        if (token) {
+            jwt.verify(token, new Buffer('thisismytoken', 'base64'), function (err, decoded) {
+                if (err) {
+                    return res.status(401).json({
+                        message: 'Failed to authenticate token : ' + err.message
+                    });
+                } else {
+                    let addPlan = req.body;
+
+                    client.del("jsonSchema", function (err, result) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        if (result) {
+                            client.set("jsonSchema", JSON.stringify(addPlan), function (err, result) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                                res.status(200).send("The schema is updated");
+                            });
+                        } else {
+                            res.status(404).send("Schema does not exists");
+                        }
+                    });
+                }
+            });
+        } else {
+            return res.status(404).send({
+                message: 'No token provided'
+            });
+        }
+    });
+
     // Add a new plan
     app.post('/plan', function (req, res, next) {
         if (req.headers.authorization) {
@@ -192,69 +259,80 @@ module.exports = function (app, client) {
 
                     let addPlan = req.body;
 
-                    let errors = v.validate(addPlan, schema).errors;
-                    if (errors.length < 1) {
+                    client.get("jsonSchema", function (err, result) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        if (result) {
+                            var schema = JSON.parse(result);
 
-                        for (let key in addPlan) {
-                            // check also if property is not inherited from prototype
-                            if (addPlan.hasOwnProperty(key)) {
-                                let value = addPlan[key];
-                                if (typeof (value) == 'object') {
-                                    if (value instanceof Array) {
-                                        for (let i = 0; i < value.length; i++) {
-                                            let eachValue = value[i];
-                                            // console.log(eachValue);
-                                            for (let innerkey in eachValue) {
-                                                if (eachValue.hasOwnProperty(innerkey)) {
-                                                    let innerValue = eachValue[innerkey];
-                                                    if (typeof (innerValue) == 'object') {
-                                                        client.hmset(_id + "-" + eachValue["objectType"] + "-" + eachValue["objectId"] + "-" + innerkey, innerValue, function (err, result) {
-                                                            if (err) {
-                                                                console.log(err);
-                                                            }
-                                                        });
-                                                        // client.sadd(_id + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]+"-"+innerkey, _id + "-" + innerValue["objectType"]+"-"+innerValue["objectId"]);                                            
-                                                    } else {
-                                                        client.hset(_id + "-" + eachValue["objectType"] + "-" + eachValue["objectId"], innerkey, innerValue, function (err, result) {
-                                                            if (err) {
-                                                                console.log(err);
-                                                            }
-                                                        });
+                            let errors = v.validate(addPlan, schema).errors;
+                            if (errors.length < 1) {
 
-                                                        // MAKE SURE YOU UNCOMMENT THIS.
-                                                        client.sadd(_id + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, _id + "-" + eachValue["objectType"] + "-" + eachValue["objectId"]);
+                                for (let key in addPlan) {
+                                    // check also if property is not inherited from prototype
+                                    if (addPlan.hasOwnProperty(key)) {
+                                        let value = addPlan[key];
+                                        if (typeof (value) == 'object') {
+                                            if (value instanceof Array) {
+                                                for (let i = 0; i < value.length; i++) {
+                                                    let eachValue = value[i];
+                                                    // console.log(eachValue);
+                                                    for (let innerkey in eachValue) {
+                                                        if (eachValue.hasOwnProperty(innerkey)) {
+                                                            let innerValue = eachValue[innerkey];
+                                                            if (typeof (innerValue) == 'object') {
+                                                                client.hmset(_id + "-" + eachValue["objectType"] + "-" + eachValue["objectId"] + "-" + innerkey, innerValue, function (err, result) {
+                                                                    if (err) {
+                                                                        console.log(err);
+                                                                    }
+                                                                });
+                                                                // client.sadd(_id + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]+"-"+innerkey, _id + "-" + innerValue["objectType"]+"-"+innerValue["objectId"]);                                            
+                                                            } else {
+                                                                client.hset(_id + "-" + eachValue["objectType"] + "-" + eachValue["objectId"], innerkey, innerValue, function (err, result) {
+                                                                    if (err) {
+                                                                        console.log(err);
+                                                                    }
+                                                                });
+
+                                                                // MAKE SURE YOU UNCOMMENT THIS.
+                                                                client.sadd(_id + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, _id + "-" + eachValue["objectType"] + "-" + eachValue["objectId"]);
+                                                            }
+                                                        }
                                                     }
                                                 }
+                                            } else {
+                                                for (let innerkey in value) {
+                                                    let innerValue = value[innerkey];
+                                                    client.hmset(_id + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, value, function (err, result) {
+                                                        if (err) {
+                                                            console.log(err);
+                                                        }
+                                                    });
+                                                    // client.sadd(_id + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, _id + "-" + value["objectType"]+"-"+value["objectId"]);
+                                                }
                                             }
-                                        }
-                                    } else {
-                                        for (let innerkey in value) {
-                                            let innerValue = value[innerkey];
-                                            client.hmset(_id + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, value, function (err, result) {
+                                        } else {
+                                            client.hset(_id + "-" + addPlan["objectType"] + "-" + addPlan["objectId"], key, value, function (err, result) {
                                                 if (err) {
                                                     console.log(err);
                                                 }
                                             });
-                                            // client.sadd(_id + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, _id + "-" + value["objectType"]+"-"+value["objectId"]);
                                         }
                                     }
-                                } else {
-                                    client.hset(_id + "-" + addPlan["objectType"] + "-" + addPlan["objectId"], key, value, function (err, result) {
-                                        if (err) {
-                                            console.log(err);
-                                        }
-                                    });
                                 }
+                                res.status(201).send("The key of the newly created plan is: " + _id);
+                            } else {
+                                var errorArray = [];
+                                for (let i = 0; i < errors.length; i++) {
+                                    errorArray.push(errors[i].stack);
+                                }
+                                res.status(400).send(errorArray);
                             }
+                        } else {
+                            res.sendStatus(404);
                         }
-                        res.status(201).send("The key of the newly created plan is: " + _id);
-                    } else {
-                        var errorArray = [];
-                        for (let i = 0; i < errors.length; i++) {
-                            errorArray.push(errors[i].stack);
-                        }
-                        res.status(400).send(errorArray);
-                    }
+                    });
                 }
             });
         } else {
@@ -366,86 +444,97 @@ module.exports = function (app, client) {
                     let planId = req.params.planId;
                     let addPlan = req.body;
 
-                    let errors = v.validate(addPlan, schema).errors;
-                    if (errors.length < 1) {
-                        client.keys(planId + "*", function (err, result) {
-                            if (err) {
-                                console.log(err);
-                            }
-                            if (result.length > 0) {
-                                client.del(result, function (err, deleted) {
+                    client.get("jsonSchema", function (err, result) {
+                        if (err) {
+                            console.log(err);
+                        }
+                        if (result) {
+                            var schema = JSON.parse(result);
+
+                            let errors = v.validate(addPlan, schema).errors;
+                            if (errors.length < 1) {
+                                client.keys(planId + "*", function (err, result) {
                                     if (err) {
                                         console.log(err);
                                     }
-                                    if (deleted) {
-                                        for (let key in addPlan) {
-                                            // check also if property is not inherited from prototype
-                                            if (addPlan.hasOwnProperty(key)) {
-                                                let value = addPlan[key];
-                                                if (typeof (value) == 'object') {
-                                                    if (value instanceof Array) {
-                                                        for (let i = 0; i < value.length; i++) {
-                                                            let eachValue = value[i];
-                                                            // console.log(eachValue);
-                                                            for (let innerkey in eachValue) {
-                                                                if (eachValue.hasOwnProperty(innerkey)) {
-                                                                    let innerValue = eachValue[innerkey];
-                                                                    if (typeof (innerValue) == 'object') {
-                                                                        client.hmset(planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"] + "-" + innerkey, innerValue, function (err, result) {
-                                                                            if (err) {
-                                                                                console.log(err);
-                                                                            }
-                                                                        });
-                                                                        // client.sadd(planId + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]+"-"+innerkey, planId + "-" + innerValue["objectType"]+"-"+innerValue["objectId"]);                                            
-                                                                    } else {
-                                                                        client.hset(planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"], innerkey, innerValue, function (err, result) {
-                                                                            if (err) {
-                                                                                console.log(err);
-                                                                            }
-                                                                        });
+                                    if (result.length > 0) {
+                                        client.del(result, function (err, deleted) {
+                                            if (err) {
+                                                console.log(err);
+                                            }
+                                            if (deleted) {
+                                                for (let key in addPlan) {
+                                                    // check also if property is not inherited from prototype
+                                                    if (addPlan.hasOwnProperty(key)) {
+                                                        let value = addPlan[key];
+                                                        if (typeof (value) == 'object') {
+                                                            if (value instanceof Array) {
+                                                                for (let i = 0; i < value.length; i++) {
+                                                                    let eachValue = value[i];
+                                                                    // console.log(eachValue);
+                                                                    for (let innerkey in eachValue) {
+                                                                        if (eachValue.hasOwnProperty(innerkey)) {
+                                                                            let innerValue = eachValue[innerkey];
+                                                                            if (typeof (innerValue) == 'object') {
+                                                                                client.hmset(planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"] + "-" + innerkey, innerValue, function (err, result) {
+                                                                                    if (err) {
+                                                                                        console.log(err);
+                                                                                    }
+                                                                                });
+                                                                                // client.sadd(planId + "-" + eachValue["objectType"]+"-"+eachValue["objectId"]+"-"+innerkey, planId + "-" + innerValue["objectType"]+"-"+innerValue["objectId"]);                                            
+                                                                            } else {
+                                                                                client.hset(planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"], innerkey, innerValue, function (err, result) {
+                                                                                    if (err) {
+                                                                                        console.log(err);
+                                                                                    }
+                                                                                });
 
-                                                                        // MAKE SURE YOU UNCOMMENT THIS.
-                                                                        client.sadd(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"]);
+                                                                                // MAKE SURE YOU UNCOMMENT THIS.
+                                                                                client.sadd(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, planId + "-" + eachValue["objectType"] + "-" + eachValue["objectId"]);
+                                                                            }
+                                                                        }
                                                                     }
                                                                 }
+                                                            } else {
+                                                                for (let innerkey in value) {
+                                                                    let innerValue = value[innerkey];
+                                                                    client.hmset(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, value, function (err, result) {
+                                                                        if (err) {
+                                                                            console.log(err);
+                                                                        }
+                                                                    });
+                                                                    // client.sadd(planId + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, planId + "-" + value["objectType"]+"-"+value["objectId"]);
+                                                                }
                                                             }
-                                                        }
-                                                    } else {
-                                                        for (let innerkey in value) {
-                                                            let innerValue = value[innerkey];
-                                                            client.hmset(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"] + "-" + key, value, function (err, result) {
+                                                        } else {
+                                                            client.hset(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"], key, value, function (err, result) {
                                                                 if (err) {
                                                                     console.log(err);
                                                                 }
                                                             });
-                                                            // client.sadd(planId + "-" + addPlan["objectType"]+"-"+addPlan["objectId"]+"-"+key, planId + "-" + value["objectType"]+"-"+value["objectId"]);
                                                         }
                                                     }
-                                                } else {
-                                                    client.hset(planId + "-" + addPlan["objectType"] + "-" + addPlan["objectId"], key, value, function (err, result) {
-                                                        if (err) {
-                                                            console.log(err);
-                                                        }
-                                                    });
                                                 }
+                                                res.status(200).send("The keys of the plan id " + planId + " are updated");
+                                            } else {
+                                                res.status(404).send("Plan Id " + planId + " does not exists");
                                             }
-                                        }
-                                        res.status(200).send("The keys of the plan id " + planId + " are updated");
+                                        });
                                     } else {
                                         res.status(404).send("Plan Id " + planId + " does not exists");
                                     }
                                 });
                             } else {
-                                res.status(404).send("Plan Id " + planId + " does not exists");
+                                var errorArray = [];
+                                for (let i = 0; i < errors.length; i++) {
+                                    errorArray.push(errors[i].stack);
+                                }
+                                res.status(400).send(errorArray);
                             }
-                        });     
-                    } else {
-                        var errorArray = [];
-                        for (let i = 0; i < errors.length; i++) {
-                            errorArray.push(errors[i].stack);
+                        } else {
+                            res.sendStatus(404);
                         }
-                        res.status(400).send(errorArray);
-                    }
+                    });
                 }
             });
         } else {
@@ -504,7 +593,7 @@ module.exports = function (app, client) {
         jwt.sign({
             'tokenCreator': "Aadesh"
         }, new Buffer('thisismytoken', 'base64'), {
-            expiresIn: 180 // expires in 3 minutes
+            expiresIn: 420 // expires in 3 minutes
         }, function (err, token) {
             res.status(201).json({
                 message: 'The token has been generated',
