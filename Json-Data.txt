@@ -37,14 +37,10 @@
 			"objectId": "1234512xvc1314sdfsd",
 			"objectType": "membercostshare"
 		},
-
 		"_org": "example.com",
-
 		"objectId": "27283xvx9sdf",
 		"objectType": "planservice"
 	}],
-
-
 	"_org": "example.com",
 	"objectId": "12xvxc345ssdsds",
 	"objectType": "plan",

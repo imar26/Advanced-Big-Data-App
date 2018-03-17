@@ -93,5 +93,6 @@
         "creationDate": {
             "type": "string"
         }
-    }        
+    },
+    "additionalProperties": false
 }
