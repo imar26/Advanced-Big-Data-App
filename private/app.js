@@ -177,7 +177,7 @@ module.exports = function (app, client) {
                                 res.status(400).send(errorArray);
                             }
                         } else {
-                            res.status(400).send("Schema not available");
+                            res.status(404).send("Schema not available");
                         }
                     });
                 }
