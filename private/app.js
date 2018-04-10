@@ -115,7 +115,6 @@ module.exports = function (app, client) {
 
                             let errors = v.validate(addPlan, schema).errors;
                             if (errors.length < 1) {
-
                                 for (let key in addPlan) {
                                     // check also if property is not inherited from prototype
                                     if (addPlan.hasOwnProperty(key)) {
@@ -167,7 +166,20 @@ module.exports = function (app, client) {
                                             });
                                         }
                                     }
+                                }                                
+                                client.lpush("queue", JSON.stringify(addPlan));
+
+                                client.brpoplpush("queue", "backupQueue", 0, handleJob);
+
+                                function handleJob(err, data) {
+                                    console.log("Hello");
+                                    if(err) {
+                                        console.log(err);
+                                    } else {                            
+                                        console.log(data);
+                                    }
                                 }
+                                
                                 res.status(201).send("The key of the newly created plan is: " + _id);
                             } else {
                                 var errorArray = [];
@@ -440,7 +452,7 @@ module.exports = function (app, client) {
         jwt.sign({
             'tokenCreator': "Aadesh"
         }, new Buffer('thisismytoken', 'base64'), {
-            expiresIn: 300 // expires in 5 minutes
+            expiresIn: 30000     // expires in 5 minutes
         }, function (err, token) {
             res.status(201).json({
                 message: 'The token has been generated',
