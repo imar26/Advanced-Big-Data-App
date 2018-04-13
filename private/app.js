@@ -13,14 +13,6 @@ module.exports = function (app, client) {
 
     var indexName = "planindex";
 
-    elasticClient.delete({
-        index: indexName,
-        type: 'plan',
-        id: 'cc6fde40-3ee0-11e8-8a13-b9cd191983fd'
-    }, function (error, response) {
-        console.log(response);
-    });
-
     // Enabling Strong Etag
     app.set('etag', 'strong');
 
@@ -211,7 +203,7 @@ module.exports = function (app, client) {
                                                     id: _id,
                                                     body: data
                                                 }).then(function(resp) {
-                                                    let resp = resp;
+                                                    let response = resp;
                                                 }, function(err) {
                                                     console.log(err);
                                                 });
@@ -225,7 +217,7 @@ module.exports = function (app, client) {
                                                 id: _id,
                                                 body: data
                                             }).then(function(resp) {
-                                                let resp = resp;
+                                                let response = resp;
                                             }, function(err) {
                                                 console.log(err);
                                             });
@@ -429,6 +421,18 @@ module.exports = function (app, client) {
                                                         }
                                                     }
                                                 }
+
+                                                elasticClient.index({
+                                                    index: indexName,
+                                                    type: 'plan',
+                                                    id: planId,
+                                                    body: addPlan
+                                                }).then(function(resp) {
+                                                    let response = resp;
+                                                }, function(err) {
+                                                    console.log(err);
+                                                });
+
                                                 res.status(200).send("The keys of the plan id " + planId + " are updated");
                                             } else {
                                                 res.status(404).send("Plan Id " + planId + " does not exists");
