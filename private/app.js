@@ -197,7 +197,7 @@ module.exports = function (app, client) {
                                             elasticClient.indices.create({
                                                 index: indexName
                                             }).then(function(resp) {
-                                                elasticClient.create({
+                                                elasticClient.index({
                                                     index: indexName,
                                                     type: 'plan',
                                                     id: _id,
@@ -211,7 +211,7 @@ module.exports = function (app, client) {
                                                 console.log(err);
                                             });
                                         } else {
-                                            elasticClient.create({
+                                            elasticClient.index({
                                                 index: indexName,
                                                 type: 'plan',
                                                 id: _id,
