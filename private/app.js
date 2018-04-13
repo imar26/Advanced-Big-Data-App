@@ -488,6 +488,17 @@ module.exports = function (app, client) {
                                     console.log(err);
                                 }
                                 if (deleted) {
+
+                                    elasticClient.delete({
+                                        index: indexName,
+                                        type: 'plan',
+                                        id: planId
+                                    }).then(function(resp) {
+                                        let response = resp;
+                                    }, function(err) {
+                                        console.log(err);
+                                    });
+
                                     res.status(200).send("All the keys with Plan Id " + planId + " are deleted");
                                 } else {
                                     res.status(404).send("Plan Id " + planId + " does not exists");
