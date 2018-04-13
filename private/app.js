@@ -538,16 +538,4 @@ module.exports = function (app, client) {
     // Temporarily commented out (Validating with hardcoded data)
     // console.log(v.validate(data, schema));
 
-    app.get('/planindex/_search', function(req, res) {
-        elasticClient.search({
-            index: indexName,
-            type: 'document'
-        }).then(function(resp) {
-            console.log(resp);
-            res.json(resp);
-        }, function(err) {
-            console.log(err);
-        })
-    });
-
 };
