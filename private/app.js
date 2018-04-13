@@ -3,6 +3,23 @@ module.exports = function (app, client) {
     var async = require('async');
     var redis = require('redis');
     var jwt = require('jsonwebtoken');
+    var elasticsearch = require('elasticsearch');
+
+    // Elastic Search
+    var elasticClient = new elasticsearch.Client({  
+        host: 'localhost:9200',
+        log: 'info'
+    });
+
+    var indexName = "planindex";
+
+    elasticClient.delete({
+        index: indexName,
+        type: 'plan',
+        id: 'cc6fde40-3ee0-11e8-8a13-b9cd191983fd'
+    }, function (error, response) {
+        console.log(response);
+    });
 
     // Enabling Strong Etag
     app.set('etag', 'strong');
@@ -167,18 +184,56 @@ module.exports = function (app, client) {
                                         }
                                     }
                                 }                                
+                                
                                 client.lpush("queue", JSON.stringify(addPlan));
 
                                 client.brpoplpush("queue", "backupQueue", 0, handleJob);
 
                                 function handleJob(err, data) {
-                                    console.log("Hello");
                                     if(err) {
                                         console.log(err);
                                     } else {                            
-                                        console.log(data);
+                                        createIndex(req, res, data);
                                     }
                                 }
+                            
+                                function createIndex(req, res, data) {
+                                    elasticClient.indices.exists({
+                                        index: indexName
+                                    }).then(function(resp) {
+                                        if(!resp) {
+                                            elasticClient.indices.create({
+                                                index: indexName
+                                            }).then(function(resp) {
+                                                elasticClient.create({
+                                                    index: indexName,
+                                                    type: 'plan',
+                                                    id: _id,
+                                                    body: data
+                                                }).then(function(resp) {
+                                                    let resp = resp;
+                                                }, function(err) {
+                                                    console.log(err);
+                                                });
+                                            }, function(err) {
+                                                console.log(err);
+                                            });
+                                        } else {
+                                            elasticClient.create({
+                                                index: indexName,
+                                                type: 'plan',
+                                                id: _id,
+                                                body: data
+                                            }).then(function(resp) {
+                                                let resp = resp;
+                                            }, function(err) {
+                                                console.log(err);
+                                            });
+                                        }
+                                    }, function(err) {
+                                        console.log(err);
+                                    });
+                                }                                
                                 
                                 res.status(201).send("The key of the newly created plan is: " + _id);
                             } else {
@@ -467,5 +522,17 @@ module.exports = function (app, client) {
 
     // Temporarily commented out (Validating with hardcoded data)
     // console.log(v.validate(data, schema));
+
+    app.get('/planindex/_search', function(req, res) {
+        elasticClient.search({
+            index: indexName,
+            type: 'document'
+        }).then(function(resp) {
+            console.log(resp);
+            res.json(resp);
+        }, function(err) {
+            console.log(err);
+        })
+    });
 
 };
