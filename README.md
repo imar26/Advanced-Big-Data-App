@@ -29,7 +29,7 @@ Also to make sure the elastic search and kibana server is up, run the below two 
 cd {{path to elastic-search}}
 .\bin.elasticsearch.bat
 
-cd {{path to elastic-search}}
+cd {{path to kibana}}
 .\bin\kibana.bat
 
 ```
