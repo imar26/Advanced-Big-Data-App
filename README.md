@@ -27,7 +27,7 @@ Also to make sure the elastic search and kibana server is up, run the below two 
 
 ```sh
 cd {{path to elastic-search}}
-.\bin.elasticsearch.bat
+.\bin\elasticsearch.bat
 
 cd {{path to kibana}}
 .\bin\kibana.bat
